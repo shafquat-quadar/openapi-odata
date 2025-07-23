@@ -1,0 +1,5 @@
+fastapi
+uvicorn
+pyodata
+openapi-spec-validator
+requests
