@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="1.0" xmlns:edmx="http://schemas.microsoft.com/ado/2007/06/edmx">
+  <edmx:DataServices m:DataServiceVersion="2.0" xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata">
+    <Schema Namespace="ODataDemo" xmlns="http://schemas.microsoft.com/ado/2008/09/edm">
+      <EntityType Name="Product">
+        <Key>
+          <PropertyRef Name="ID" />
+        </Key>
+        <Property Name="ID" Type="Edm.Int32" Nullable="false" />
+        <Property Name="Name" Type="Edm.String" Nullable="false" />
+        <Property Name="ReleaseDate" Type="Edm.DateTime" Nullable="false" />
+        <Property Name="DiscontinuedDate" Type="Edm.DateTime" Nullable="true" />
+        <Property Name="Rating" Type="Edm.Int32" Nullable="false" />
+        <Property Name="Price" Type="Edm.Double" Nullable="false" />
+      </EntityType>
+      <EntityContainer Name="DemoService" m:IsDefaultEntityContainer="true">
+        <EntitySet Name="Products" EntityType="ODataDemo.Product" />
+      </EntityContainer>
+    </Schema>
+  </edmx:DataServices>
+</edmx:Edmx>
