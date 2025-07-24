@@ -39,7 +39,14 @@ def _build_model(name: str, props: List[Dict[str, Any]], complex_models: Dict[st
 
 
 def build_models(metadata: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
-    """Create Pydantic models for all complex and entity types."""
+    """Create Pydantic models for all complex and entity types.
+
+    The returned dictionary contains three keys:
+
+    ``entities`` -- models keyed by entity type name
+    ``entity_sets`` -- models keyed by entity set name
+    ``complex`` -- models keyed by complex type name
+    """
 
     complex_models: Dict[str, Type[BaseModel]] = {}
     for ct in metadata.get("complex_types", []):
@@ -53,4 +60,11 @@ def build_models(metadata: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
             "keys": et.get("keys", []),
         }
 
-    return {"entities": entity_models, "complex": complex_models}
+    set_models: Dict[str, Dict[str, Any]] = {}
+    for es in metadata.get("entity_sets", []):
+        et_name = es.get("entity_type")
+        et_model = entity_models.get(et_name)
+        if et_model:
+            set_models[es["name"]] = et_model
+
+    return {"entities": entity_models, "entity_sets": set_models, "complex": complex_models}
