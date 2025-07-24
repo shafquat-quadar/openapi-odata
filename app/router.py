@@ -2,13 +2,12 @@ from typing import Any, Dict
 from fastapi import APIRouter, HTTPException, Request
 from .db import fetch_service, list_active_services
 from .parser import parse_metadata
-from .model_builder import build_models
-from .invoker import BackendInvoker
-from pydantic import BaseModel
-from dotenv import load_dotenv
-import os
+from .models import build_models
+from .invoker import create_invoker
+from .tool_registry import build_registry
+from fastapi.responses import JSONResponse
 
-SERVICE_CONTEXTS: Dict[str, "ServiceContext"] = {}
+SERVICE_CACHE: Dict[str, "ServiceContext"] = {}
 
 
 class ServiceContext:
@@ -18,20 +17,18 @@ class ServiceContext:
         self.base_url = base_url
         self.parsed = parse_metadata(metadata_xml)
         self.models = build_models(self.parsed)
-        load_dotenv()
-        username = os.getenv("ODATA_USERNAME", "user")
-        password = os.getenv("ODATA_PASSWORD", "password")
-        self.invoker = BackendInvoker(base_url, username, password)
+        self.invoker = create_invoker(base_url)
+        self.tools = build_registry(name, self.parsed)
 
 
 def get_context(service: str) -> ServiceContext:
-    ctx = SERVICE_CONTEXTS.get(service)
+    ctx = SERVICE_CACHE.get(service)
     if not ctx:
         data = fetch_service(service)
         if not data:
             raise HTTPException(404, "Unknown service")
         ctx = ServiceContext(data["name"], data["metadata_xml"], data["base_url"])
-        SERVICE_CONTEXTS[service] = ctx
+        SERVICE_CACHE[service] = ctx
     return ctx
 
 
@@ -39,60 +36,67 @@ router = APIRouter()
 
 
 @router.get("/services")
-def get_services():
+def services() -> Any:
     return list_active_services()
 
 
 @router.get("/services/{service}/metadata")
-def get_metadata(service: str):
+def service_metadata(service: str) -> Any:
     ctx = get_context(service)
-    return ctx.metadata_xml
+    return JSONResponse(content=ctx.metadata_xml)
 
 
 @router.post("/services/{service}/refresh")
-def refresh_service(service: str):
-    if service in SERVICE_CONTEXTS:
-        SERVICE_CONTEXTS.pop(service)
+def refresh(service: str) -> Any:
+    if service in SERVICE_CACHE:
+        SERVICE_CACHE.pop(service)
     get_context(service)
     return {"refreshed": True}
 
 
 @router.get("/tools/{service}")
-def get_tools(service: str, request: Request):
-    # The OpenAPI document is generated globally, but agents may filter by service
-    from fastapi.openapi.utils import get_openapi
-    app = request.app
-    return get_openapi(title="MCP OData Bridge", version="1.0.0", routes=app.routes)
+def tools(service: str) -> Any:
+    ctx = get_context(service)
+    return ctx.tools
+
+
+@router.get("/schema/{service}")
+def schema(service: str) -> Any:
+    ctx = get_context(service)
+    entity_models = {
+        name: model_info["model"].schema() for name, model_info in ctx.models["entities"].items()
+    }
+    return entity_models
 
 
 @router.get("/{service}/{entity}")
-def list_entities(service: str, entity: str, request: Request):
+def list_entities(service: str, entity: str, request: Request) -> Any:
     ctx = get_context(service)
-    if entity not in ctx.models:
+    if entity not in ctx.models["entities"]:
         raise HTTPException(404, "Unknown entity")
     params = dict(request.query_params)
     return ctx.invoker.get(f"/{entity}", params)
 
 
-@router.get("/{service}/{entity}({key})")
-def get_entity(service: str, entity: str, key: str, request: Request):
+@router.get("/{service}/{entity}({keys})")
+def get_entity(service: str, entity: str, keys: str, request: Request) -> Any:
     ctx = get_context(service)
-    if entity not in ctx.models:
+    if entity not in ctx.models["entities"]:
         raise HTTPException(404, "Unknown entity")
     params = dict(request.query_params)
-    return ctx.invoker.get(f"/{entity}({key})", params)
+    return ctx.invoker.get(f"/{entity}({keys})", params)
 
 
-@router.get("/{service}/{entity}({key})/{nav}")
-def navigate(service: str, entity: str, key: str, nav: str, request: Request):
+@router.get("/{service}/{entity}({keys})/{nav}")
+def navigate(service: str, entity: str, keys: str, nav: str, request: Request) -> Any:
     ctx = get_context(service)
-    if entity not in ctx.models:
+    if entity not in ctx.models["entities"]:
         raise HTTPException(404, "Unknown entity")
     params = dict(request.query_params)
-    return ctx.invoker.get(f"/{entity}({key})/{nav}", params)
+    return ctx.invoker.get(f"/{entity}({keys})/{nav}", params)
 
 
 @router.post("/invoke/{service}/{function}")
-def invoke_function(service: str, function: str, body: Dict[str, Any]):
+def invoke(service: str, function: str, body: Dict[str, Any]) -> Any:
     ctx = get_context(service)
     return ctx.invoker.post(f"/{function}", body)

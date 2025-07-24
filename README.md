@@ -1,8 +1,6 @@
 # openapi-odata
 
-This project implements a small MCP style bridge that exposes OData services via
-FastAPI. Metadata is loaded from an XML file placed in the project directory and
-parsed at runtime to create Pydantic models and routes.
+This project implements a small MCP style bridge that exposes OData services via FastAPI. Service definitions can come from a SQLite database or from a directory of metadata XML files. The metadata is parsed at runtime to create Pydantic models, FastAPI routes and a tool registry consumable by LLM agents.
 
 ## Usage
 
@@ -11,25 +9,14 @@ parsed at runtime to create Pydantic models and routes.
    pip install -r requirements.txt
    ```
 
-2. Place your OData metadata in an XML file (default: `sample_metadata.xml`).
-   You can override the location with the `METADATA_XML_FILE` environment
-   variable. The target backend URL can be customised via `ODATA_BASE_URL`.
-
-   You can fetch the XML from a running OData service using the
-   `fetch_metadata.py` helper:
-
-   ```bash
-   python fetch_metadata.py SERVICE_NAME --base-url https://host.example.com \
-       --output sample_metadata.xml --username USER --password PASS
-   ```
-
-   The script constructs `BASE_URL/SERVICE_NAME/$metadata` and performs a GET
-   request using Basic authentication. Environment variables `ODATA_BASE_URL`,
-   `ODATA_USERNAME` and `ODATA_PASSWORD` may also be used instead of passing the
-   corresponding options.
+2. Choose how services are loaded:
+   - **SQLite** (default): Insert your service configuration into `shared.sqlite`. The table `services` must contain `name`, `description`, `active`, `metadata_xml` and `base_url` columns.
+   - **Directory**: Set `METADATA_SOURCE=dir` and `METADATA_DIR=./path/to/xmls`. Each `*.xml` file is treated as a service named after the filename. Optional `BASE_URL_SERVICE` environment variables can provide per-service backend URLs.
+   You can fetch the XML from a running service using the `fetch_metadata.py` helper.
 
 3. Provide credentials in an `.env` file or environment variables:
-   - `ODATA_USERNAME` and `ODATA_PASSWORD` – Basic Auth credentials.
+   - `USERNAME` and `PASSWORD` – Basic Auth credentials for the backend
+   - `BASE_URL` (optional) – default backend base URL
 
 4. Run the server:
    ```bash
