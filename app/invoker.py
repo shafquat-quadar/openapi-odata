@@ -3,6 +3,7 @@
 from typing import Any, Dict
 import os
 import requests
+from requests.auth import HTTPBasicAuth
 from dotenv import load_dotenv
 
 
@@ -16,7 +17,9 @@ class BackendInvoker:
             base_url = "http://" + base_url
         self.base_url = base_url.rstrip("/")
         self.session = requests.Session()
-        self.session.auth = (username, password)
+        # Use HTTPBasicAuth so the Authorization header is sent on the
+        # first request rather than waiting for a 401 challenge.
+        self.session.auth = HTTPBasicAuth(username, password)
 
     def get(self, path: str, params: Dict[str, Any]) -> Any:
         url = f"{self.base_url}{path}"

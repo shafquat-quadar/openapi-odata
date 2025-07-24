@@ -15,7 +15,9 @@ This project implements a small MCP style bridge that exposes OData services via
    You can fetch the XML from a running service using the `fetch_metadata.py` helper.
 
 3. Provide credentials in an `.env` file or environment variables:
-   - `USERNAME` and `PASSWORD` – Basic Auth credentials for the backend
+   - `USERNAME` and `PASSWORD` – Basic Auth credentials for the backend. The
+     invoker now uses `HTTPBasicAuth` so these credentials are included on the
+     first request.
    - `BASE_URL` (optional) – default backend base URL
 
 4. Run the server:
