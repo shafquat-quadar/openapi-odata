@@ -17,6 +17,8 @@ This project implements a small MCP style bridge that exposes OData services via
 3. Provide credentials in an `.env` file or environment variables:
    - `USERNAME` and `PASSWORD` – Basic Auth credentials for the backend
    - `BASE_URL` (optional) – default backend base URL
+   
+   **Note:** The server refuses to start if `USERNAME`/`PASSWORD` (or `ODATA_USERNAME`/`ODATA_PASSWORD`) are not defined. Ensure these values are set either in the environment or in an `.env` file.
 
 4. Run the server:
    ```bash
