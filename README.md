@@ -1,6 +1,8 @@
 # openapi-odata
 
-This project implements a small MCP style bridge that exposes OData services via FastAPI. Metadata is stored in a SQLite database and parsed at runtime to create Pydantic models and routes.
+This project implements a small MCP style bridge that exposes OData services via
+FastAPI. Metadata is loaded from an XML file placed in the project directory and
+parsed at runtime to create Pydantic models and routes.
 
 ## Usage
 
@@ -9,7 +11,9 @@ This project implements a small MCP style bridge that exposes OData services via
    pip install -r requirements.txt
    ```
 
-2. Create `shared.sqlite` with a `services` table containing columns `id`, `name`, `metadata_xml`, `active`, `description`, and `base_url`.
+2. Place your OData metadata in an XML file (default: `sample_metadata.xml`).
+   You can override the location with the `METADATA_XML_FILE` environment
+   variable. The target backend URL can be customised via `ODATA_BASE_URL`.
 
 3. Provide credentials in an `.env` file or environment variables:
    - `ODATA_USERNAME` and `ODATA_PASSWORD` – Basic Auth credentials.
