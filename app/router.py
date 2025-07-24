@@ -1,5 +1,5 @@
-from typing import Any, Dict
-from fastapi import APIRouter, HTTPException, Request
+from typing import Any, Dict, Optional
+from fastapi import APIRouter, HTTPException, Query
 from .db import fetch_service, list_active_services
 from .parser import parse_metadata
 from .models import build_models
@@ -71,33 +71,84 @@ def schema(service: str) -> Any:
 
 
 @router.get("/{service}/{entity}")
-def list_entities(service: str, entity: str, request: Request) -> Any:
+def list_entities(
+    service: str,
+    entity: str,
+    filter_: Optional[str] = Query(None, alias="$filter"),
+    top: Optional[int] = Query(None, alias="$top"),
+    skip: Optional[int] = Query(None, alias="$skip"),
+    orderby: Optional[str] = Query(None, alias="$orderby"),
+    expand: Optional[str] = Query(None, alias="$expand"),
+    count: Optional[bool] = Query(None, alias="$count"),
+) -> Any:
     ctx = get_context(service)
     if entity not in ctx.models.get("entity_sets", {}):
         raise HTTPException(404, "Unknown entity")
-    params = dict(request.query_params)
-    return ctx.invoker.get(f"/{entity}", params)
+    params: Dict[str, Any] = {}
+    if filter_ is not None:
+        params["$filter"] = filter_
+    if top is not None:
+        params["$top"] = top
+    if skip is not None:
+        params["$skip"] = skip
+    if orderby is not None:
+        params["$orderby"] = orderby
+    if expand is not None:
+        params["$expand"] = expand
+    if count is not None:
+        params["$count"] = str(count).lower()
+    return ctx.invoker.get(f"/{service}/{entity}", params)
 
 
 @router.get("/{service}/{entity}({keys})")
-def get_entity(service: str, entity: str, keys: str, request: Request) -> Any:
+def get_entity(
+    service: str,
+    entity: str,
+    keys: str,
+    expand: Optional[str] = Query(None, alias="$expand"),
+) -> Any:
     ctx = get_context(service)
     if entity not in ctx.models.get("entity_sets", {}):
         raise HTTPException(404, "Unknown entity")
-    params = dict(request.query_params)
-    return ctx.invoker.get(f"/{entity}({keys})", params)
+    params: Dict[str, Any] = {}
+    if expand is not None:
+        params["$expand"] = expand
+    return ctx.invoker.get(f"/{service}/{entity}({keys})", params)
 
 
 @router.get("/{service}/{entity}({keys})/{nav}")
-def navigate(service: str, entity: str, keys: str, nav: str, request: Request) -> Any:
+def navigate(
+    service: str,
+    entity: str,
+    keys: str,
+    nav: str,
+    filter_: Optional[str] = Query(None, alias="$filter"),
+    top: Optional[int] = Query(None, alias="$top"),
+    skip: Optional[int] = Query(None, alias="$skip"),
+    orderby: Optional[str] = Query(None, alias="$orderby"),
+    expand: Optional[str] = Query(None, alias="$expand"),
+    count: Optional[bool] = Query(None, alias="$count"),
+) -> Any:
     ctx = get_context(service)
     if entity not in ctx.models.get("entity_sets", {}):
         raise HTTPException(404, "Unknown entity")
-    params = dict(request.query_params)
-    return ctx.invoker.get(f"/{entity}({keys})/{nav}", params)
+    params: Dict[str, Any] = {}
+    if filter_ is not None:
+        params["$filter"] = filter_
+    if top is not None:
+        params["$top"] = top
+    if skip is not None:
+        params["$skip"] = skip
+    if orderby is not None:
+        params["$orderby"] = orderby
+    if expand is not None:
+        params["$expand"] = expand
+    if count is not None:
+        params["$count"] = str(count).lower()
+    return ctx.invoker.get(f"/{service}/{entity}({keys})/{nav}", params)
 
 
 @router.post("/invoke/{service}/{function}")
 def invoke(service: str, function: str, body: Dict[str, Any]) -> Any:
     ctx = get_context(service)
-    return ctx.invoker.post(f"/{function}", body)
+    return ctx.invoker.post(f"/{service}/{function}", body)
