@@ -1,5 +1,6 @@
 fastapi
 uvicorn
-pyodata
-openapi-spec-validator
 requests
+xmltodict
+python-dotenv
+openapi-spec-validator

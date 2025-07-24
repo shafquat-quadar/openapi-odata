@@ -1,9 +1,6 @@
 # openapi-odata
 
-This project exposes an OData service as a FastAPI application. The server reads
-the OData `$metadata` document, dynamically creates Pydantic models and
-endpoints for each entity set, and exposes them via a generated OpenAPI 3.1
-schema.
+This project implements a small MCP style bridge that exposes OData services via FastAPI. Metadata is stored in a SQLite database and parsed at runtime to create Pydantic models and routes.
 
 ## Usage
 
@@ -12,14 +9,14 @@ schema.
    pip install -r requirements.txt
    ```
 
-2. Provide environment variables:
-   - `ODATA_SERVICE_URL` – base URL of the OData service.
-   - `ODATA_USERNAME` and `ODATA_PASSWORD` – credentials for basic auth.
-   - `ODATA_METADATA_FILE` – optional path to a local `$metadata` XML file.
+2. Create `shared.sqlite` with a `services` table containing columns `id`, `name`, `metadata_xml`, `active`, `description`, and `base_url`.
 
-3. Run the server:
+3. Provide credentials in an `.env` file or environment variables:
+   - `ODATA_USERNAME` and `ODATA_PASSWORD` – Basic Auth credentials.
+
+4. Run the server:
    ```bash
    uvicorn app.main:app
    ```
 
-The generated OpenAPI document is available at `/openapi.json`.
+The `/openapi.json` endpoint exposes the combined OpenAPI specification while `/tools/{service}` returns tool metadata for a single service.
