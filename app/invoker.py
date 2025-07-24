@@ -38,6 +38,8 @@ def create_invoker(base_url: str) -> BackendInvoker:
     """Create an invoker using credentials from ``.env`` or environment."""
 
     load_dotenv()
-    username = os.getenv("USERNAME", os.getenv("ODATA_USERNAME", "user"))
-    password = os.getenv("PASSWORD", os.getenv("ODATA_PASSWORD", "password"))
+    username = os.getenv("USERNAME") or os.getenv("ODATA_USERNAME")
+    password = os.getenv("PASSWORD") or os.getenv("ODATA_PASSWORD")
+    if not username or not password:
+        raise ValueError("Backend credentials are not configured")
     return BackendInvoker(base_url, username, password)
