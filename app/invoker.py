@@ -25,21 +25,33 @@ class BackendInvoker:
         url = f"{self.base_url}{path}"
         resp = self.session.get(url, params=params)
         resp.raise_for_status()
-        return resp.json()
+        try:
+            return resp.json()
+        except ValueError:
+            # Some endpoints may return plain text or XML. In that case just
+            # return the raw text so FastAPI can pass it through.
+            return resp.text
 
     def post(self, path: str, json_data: Dict[str, Any]) -> Any:
         url = f"{self.base_url}{path}"
         resp = self.session.post(url, json=json_data)
         resp.raise_for_status()
-        return resp.json()
+        try:
+            return resp.json()
+        except ValueError:
+            return resp.text
 
 
 def create_invoker(base_url: str) -> BackendInvoker:
     """Create an invoker using credentials from ``.env`` or environment."""
 
-    load_dotenv()
-    username = os.getenv("USERNAME") or os.getenv("ODATA_USERNAME")
-    password = os.getenv("PASSWORD") or os.getenv("ODATA_PASSWORD")
+    # Allow the .env file to override existing environment variables so that
+    # USERNAME/PASSWORD defined by the operating system don't take precedence.
+    load_dotenv(override=True)
+    # ``ODATA_USERNAME`` and ``ODATA_PASSWORD`` take priority over the more
+    # generic ``USERNAME``/``PASSWORD`` variables.
+    username = os.getenv("ODATA_USERNAME") or os.getenv("USERNAME")
+    password = os.getenv("ODATA_PASSWORD") or os.getenv("PASSWORD")
     if not username or not password:
         raise ValueError("Backend credentials are not configured")
     return BackendInvoker(base_url, username, password)
