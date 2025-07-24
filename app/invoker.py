@@ -10,6 +10,10 @@ class BackendInvoker:
     """Thin wrapper around :mod:`requests` with Basic Auth."""
 
     def __init__(self, base_url: str, username: str, password: str):
+        if not base_url:
+            raise ValueError("Backend base URL is not configured")
+        if not base_url.startswith(("http://", "https://")):
+            base_url = "http://" + base_url
         self.base_url = base_url.rstrip("/")
         self.session = requests.Session()
         self.session.auth = (username, password)
