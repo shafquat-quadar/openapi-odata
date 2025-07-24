@@ -64,7 +64,8 @@ def tools(service: str) -> Any:
 def schema(service: str) -> Any:
     ctx = get_context(service)
     entity_models = {
-        name: model_info["model"].schema() for name, model_info in ctx.models["entities"].items()
+        name: model_info["model"].schema()
+        for name, model_info in ctx.models["entities"].items()
     }
     return entity_models
 
@@ -72,7 +73,7 @@ def schema(service: str) -> Any:
 @router.get("/{service}/{entity}")
 def list_entities(service: str, entity: str, request: Request) -> Any:
     ctx = get_context(service)
-    if entity not in ctx.models["entities"]:
+    if entity not in ctx.models.get("entity_sets", {}):
         raise HTTPException(404, "Unknown entity")
     params = dict(request.query_params)
     return ctx.invoker.get(f"/{entity}", params)
@@ -81,7 +82,7 @@ def list_entities(service: str, entity: str, request: Request) -> Any:
 @router.get("/{service}/{entity}({keys})")
 def get_entity(service: str, entity: str, keys: str, request: Request) -> Any:
     ctx = get_context(service)
-    if entity not in ctx.models["entities"]:
+    if entity not in ctx.models.get("entity_sets", {}):
         raise HTTPException(404, "Unknown entity")
     params = dict(request.query_params)
     return ctx.invoker.get(f"/{entity}({keys})", params)
@@ -90,7 +91,7 @@ def get_entity(service: str, entity: str, keys: str, request: Request) -> Any:
 @router.get("/{service}/{entity}({keys})/{nav}")
 def navigate(service: str, entity: str, keys: str, nav: str, request: Request) -> Any:
     ctx = get_context(service)
-    if entity not in ctx.models["entities"]:
+    if entity not in ctx.models.get("entity_sets", {}):
         raise HTTPException(404, "Unknown entity")
     params = dict(request.query_params)
     return ctx.invoker.get(f"/{entity}({keys})/{nav}", params)
