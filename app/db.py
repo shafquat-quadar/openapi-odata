@@ -76,7 +76,12 @@ def fetch_service(service: str) -> Optional[Dict[str, Any]]:
     )
     row = cur.fetchone()
     if row:
-        return dict(row)
+        data = dict(row)
+        if not data.get("base_url"):
+            data["base_url"] = os.getenv(
+                f"BASE_URL_{service.upper()}", os.getenv("BASE_URL", "")
+            )
+        return data
     return None
 
 
