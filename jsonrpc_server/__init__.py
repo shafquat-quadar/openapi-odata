@@ -4,14 +4,9 @@ import logging
 from typing import Optional
 from jsonrpcserver import method, dispatch, result
 
-CAPABILITIES = {
-    "services": {},
-    "metadata": {},
-    "get_entity": {},
-    "list_entities": {},
-    "invoke": {},
-    "call_function": {},
-}
+# Capabilities advertised during the JSON-RPC ``initialize`` handshake.
+# ``tools`` is currently the only capability required by the Claude agent.
+CAPABILITIES = {"tools": {}}
 
 from openapi_server import app
 from openapi_server.routes.odata import (
@@ -29,7 +24,7 @@ def initialize() -> result.Result:
     """Handle the JSON-RPC initialize request."""
     return result.Success(
         {
-            "protocolVersion": "2.0",
+            "protocolVersion": "2024-11-05",
             "serverInfo": {"name": app.title, "version": app.version},
             "capabilities": CAPABILITIES,
         }
