@@ -21,11 +21,12 @@ mode: http  # "http", "jsonrpc", or "both"
 port: 8000  # HTTP server port
 # dir: ./metadata
 # db_file: shared.sqlite
+# base_url: https://sapes5.sapdevcenter.com/sap/opu/odata/sap
 # odata_user: username
 # odata_pass: password
 ```
 
-The `DIR` variable points at a directory containing service metadata XML files. Alternatively set `DB_FILE` to use a SQLite database. Credentials for backend requests can be provided via `ODATA_USER` and `ODATA_PASS`.
+The `DIR` variable points at a directory containing service metadata XML files. Alternatively set `DB_FILE` to use a SQLite database. Credentials for backend requests can be provided via `ODATA_USER` and `ODATA_PASS`. `BASE_URL` sets the default OData endpoint used for backend requests when a service metadata file does not specify one.
 
 ## Running
 

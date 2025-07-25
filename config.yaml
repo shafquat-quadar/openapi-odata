@@ -4,5 +4,6 @@ mode: http
 port: 8000
 # dir: ./metadata
 # db_file: shared.sqlite
+# base_url: https://sapes5.sapdevcenter.com/sap/opu/odata/sap
 # odata_user: username
 # odata_pass: password

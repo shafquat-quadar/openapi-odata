@@ -11,10 +11,11 @@ from config import settings
 
 
 class ODataInvoker:
-    def __init__(self, base_url: str) -> None:
-        if not base_url:
+    def __init__(self, base_url: Optional[str] = None) -> None:
+        base = base_url or settings.base_url
+        if not base:
             raise ValueError("Backend base URL missing")
-        self.base_url = base_url.rstrip("/")
+        self.base_url = base.rstrip("/")
         self.session = requests.Session()
         if settings.user and settings.password:
             self.session.auth = HTTPBasicAuth(settings.user, settings.password)

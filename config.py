@@ -14,5 +14,6 @@ class Settings:
         self.db = os.getenv("DB_FILE", cfg.get("db_file", "shared.sqlite"))
         self.user = os.getenv("ODATA_USER", cfg.get("odata_user"))
         self.password = os.getenv("ODATA_PASS", cfg.get("odata_pass"))
+        self.base_url = os.getenv("BASE_URL", cfg.get("base_url"))
 
 settings = Settings()
