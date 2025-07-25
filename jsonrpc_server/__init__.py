@@ -97,8 +97,24 @@ TOOLS: List[Dict[str, Dict]] = [
 
 
 @method
-def initialize() -> result.Result:
-    """Handle the JSON-RPC initialize request."""
+def initialize(
+    protocolVersion: Optional[str] = None,
+    capabilities: Optional[Dict[str, Any]] = None,
+    clientInfo: Optional[Dict[str, Any]] = None,
+    **_kwargs: Any,
+) -> result.Result:
+    """Handle the JSON-RPC initialize request.
+
+    Parameters are accepted for compatibility with clients that send them
+    during the initialize handshake. They are not currently used, but the
+    presence of these optional parameters prevents ``InvalidParams`` errors
+    from the dispatcher.
+    """
+
+    # Ignore the requested protocol version and always respond with the
+    # standard version supported by this server.
+    _ = (protocolVersion, capabilities, clientInfo, _kwargs)
+
     return result.Success(
         {
             "protocolVersion": "2024-11-05",
