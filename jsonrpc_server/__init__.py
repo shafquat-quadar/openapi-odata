@@ -1,7 +1,7 @@
 """Simple JSON-RPC 2.0 server exposing OData endpoints."""
 import sys
 import logging
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, Any
 from jsonrpcserver import method, dispatch, result
 
 # Capabilities advertised during the JSON-RPC ``initialize`` handshake.
@@ -157,6 +157,52 @@ def call_function(service: str, name: str, body: dict) -> result.Result:
 def list_tools() -> result.Result:
     """Return metadata about available JSON-RPC tools."""
     return result.Success({"tools": TOOLS})
+
+
+@method(name="tools/call")
+def call_tool(params: Dict[str, Any]) -> result.Result:
+    """Execute one of the available tools using MCP format."""
+    name = params.get("name")
+    arguments = params.get("arguments", {}) or {}
+
+    if not name:
+        return result.Error(code=400, message="Tool name required")
+    if not isinstance(arguments, dict):
+        return result.Error(code=400, message="arguments must be an object")
+
+    tool_map = {
+        "services": lambda: _services(),
+        "metadata": lambda: _metadata(**arguments),
+        "get_entity": lambda: _get_entity(
+            arguments.get("service"),
+            arguments.get("entity"),
+            arguments.get("keys"),
+            arguments.get("expand"),
+        ),
+        "list_entities": lambda: _list_entities(
+            arguments.get("service"),
+            arguments.get("entity"),
+            arguments.get("filter_"),
+            arguments.get("top"),
+            arguments.get("skip"),
+            arguments.get("orderby"),
+            arguments.get("expand"),
+            arguments.get("count"),
+        ),
+        "invoke": lambda: _invoke(arguments),
+        "call_function": lambda: _call_function(
+            arguments.get("service"),
+            arguments.get("name"),
+            arguments.get("body", {}),
+        ),
+    }
+
+    func = tool_map.get(name)
+    if not func:
+        return result.Error(code=404, message="Unknown tool")
+
+    res = func()
+    return result.Success({"content": res, "contentType": "application/json"})
 
 
 def serve() -> None:
