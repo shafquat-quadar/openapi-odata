@@ -9,6 +9,7 @@ class Settings:
             with open(path, "r", encoding="utf-8") as fh:
                 cfg = yaml.safe_load(fh) or {}
         self.mode = os.getenv("MODE", cfg.get("mode", "http"))
+        self.port = int(os.getenv("PORT", cfg.get("port", 8000)))
         self.dir = os.getenv("DIR", cfg.get("dir"))
         self.db = os.getenv("DB_FILE", cfg.get("db_file", "shared.sqlite"))
         self.user = os.getenv("ODATA_USER", cfg.get("odata_user"))

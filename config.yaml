@@ -1,5 +1,7 @@
 # Default configuration for MCP OData bridge
 mode: http
+# port used for HTTP server
+port: 8000
 # dir: ./metadata
 # db_file: shared.sqlite
 # odata_user: username
