@@ -40,3 +40,16 @@ service.
 The `/docs` path serves an interactive Swagger UI while `/openapi.json` exposes
 the combined OpenAPI specification. The `/tools/{service}` endpoint returns tool
 metadata for a single service.
+
+## Running in MCP Mode
+
+The bridge can also run in MCP-compatible mode where it communicates over
+`stdin`/`stdout` using JSON-RPC messages.
+
+```bash
+# MCP Mode
+python mcp_main.py
+```
+
+In this mode the process expects JSON-RPC requests on `stdin` and writes
+responses to `stdout`.
