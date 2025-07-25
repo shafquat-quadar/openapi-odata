@@ -12,7 +12,7 @@ pip install -r requirements.txt
 
 ## Configuration
 
-Configuration is loaded from `config.yaml` if present and can be overridden with environment variables.
+Configuration is loaded from `config.yaml`. Environment variables are ignored.
 
 Example `config.yaml`:
 
@@ -26,13 +26,12 @@ port: 8000  # HTTP server port
 # odata_pass: password
 ```
 
-The `DIR` variable points at a directory containing service metadata XML files. Alternatively set `DB_FILE` to use a SQLite database. Credentials for backend requests can be provided via `ODATA_USER` and `ODATA_PASS`. `BASE_URL` sets the default OData endpoint used for backend requests when a service metadata file does not specify one.
+Set `dir` to point at a directory containing service metadata XML files. Alternatively set `db_file` to use a SQLite database. Credentials for backend requests can be provided via `odata_user` and `odata_pass`. `base_url` sets the default OData endpoint used for backend requests when a service metadata file does not specify one.
 
 ## Running
 
-Use `main.py` with the `--mode` option or set `MODE` in the environment. The
-HTTP port can be configured with the `--port` option or `PORT` environment
-variable.
+Use `main.py` with the `--mode` option to start the server. The HTTP port can
+be changed with the `--port` option.
 
 ### HTTP Mode
 

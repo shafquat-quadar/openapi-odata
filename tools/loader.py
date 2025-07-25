@@ -17,8 +17,7 @@ def _load_from_file(service_name: str) -> Tuple[str, str]:
         raise FileNotFoundError(path)
     with open(path, "r", encoding="utf-8") as fh:
         xml = fh.read()
-    base_url = os.getenv(f"BASE_URL_{service_name.upper()}", "")
-    return xml, base_url
+    return xml, ""
 
 
 def _load_from_db(service_name: str) -> Tuple[str, str]:
