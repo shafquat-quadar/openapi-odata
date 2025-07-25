@@ -11,6 +11,35 @@ from utils.invoker import ODataInvoker
 from models.dynamic import build_models
 
 
+def _quote_value(value: str, edm_type: str) -> str:
+    """Quote string values according to their EDM type."""
+    if not edm_type.startswith("Edm.String"):
+        return value
+    if value.startswith("'") and value.endswith("'"):
+        return value
+    if value.startswith('"') and value.endswith('"'):
+        return value
+    return f"'{value}'"
+
+
+def _format_keys(raw_keys: str, key_types: Dict[str, str]) -> str:
+    """Ensure key values are correctly quoted based on metadata."""
+    if "=" in raw_keys:
+        parts = []
+        for pair in raw_keys.split(","):
+            name, val = pair.split("=", 1)
+            name = name.strip()
+            val = val.strip()
+            edm = key_types.get(name, "")
+            parts.append(f"{name}={_quote_value(val.strip("'\""), edm)}")
+        return ",".join(parts)
+    # single key
+    if key_types:
+        name, edm = next(iter(key_types.items()))
+        return _quote_value(raw_keys.strip("'\""), edm)
+    return raw_keys
+
+
 class ServiceContext:
     def __init__(self, name: str) -> None:
         xml, base_url = load_metadata(name)
@@ -20,6 +49,22 @@ class ServiceContext:
         self.parsed = parse_metadata(xml)
         self.models = build_models(self.parsed)
         self.invoker = ODataInvoker(base_url)
+        self.key_types = self._extract_key_types()
+
+    def _extract_key_types(self) -> Dict[str, Dict[str, str]]:
+        """Map entity set names to their key property EDM types."""
+        types: Dict[str, Dict[str, str]] = {}
+        et_map = {et["name"]: et for et in self.parsed.get("entity_types", [])}
+        for es in self.parsed.get("entity_sets", []):
+            et = et_map.get(es.get("entity_type"))
+            if not et:
+                continue
+            key_props = {}
+            for prop in et.get("properties", []):
+                if prop.get("name") in et.get("keys", []):
+                    key_props[prop["name"]] = prop.get("type", "")
+            types[es["name"]] = key_props
+        return types
 
 
 CACHE: Dict[str, ServiceContext] = {}
@@ -50,6 +95,23 @@ def metadata(service: str) -> Any:
     return JSONResponse(content=ctx.metadata_xml)
 
 
+@router.get("/{service}/{entity}({keys})")
+def get_entity(
+    service: str,
+    entity: str,
+    keys: str,
+    expand: Optional[str] = Query(None, alias="$expand"),
+) -> Any:
+    ctx = get_ctx(service)
+    if entity not in ctx.models.get("entity_sets", {}):
+        raise HTTPException(404, "Unknown entity set")
+    params: Dict[str, Any] = {}
+    if expand is not None:
+        params["$expand"] = expand
+    formatted = _format_keys(keys, ctx.key_types.get(entity, {}))
+    return ctx.invoker.get(f"/{service}/{entity}({formatted})", params)
+
+
 @router.get("/{service}/{entity}")
 def list_entities(
     service: str,
@@ -78,22 +140,6 @@ def list_entities(
     if count is not None:
         params["$count"] = str(count).lower()
     return ctx.invoker.get(f"/{service}/{entity}", params)
-
-
-@router.get("/{service}/{entity}({keys})")
-def get_entity(
-    service: str,
-    entity: str,
-    keys: str,
-    expand: Optional[str] = Query(None, alias="$expand"),
-) -> Any:
-    ctx = get_ctx(service)
-    if entity not in ctx.models.get("entity_sets", {}):
-        raise HTTPException(404, "Unknown entity set")
-    params: Dict[str, Any] = {}
-    if expand is not None:
-        params["$expand"] = expand
-    return ctx.invoker.get(f"/{service}/{entity}({keys})", params)
 
 
 @router.post("/invoke")
