@@ -15,11 +15,19 @@ def _quote_value(value: str, edm_type: str) -> str:
     """Quote string values according to their EDM type."""
     if not edm_type.startswith("Edm.String"):
         return value
-    if value.startswith("'") and value.endswith("'"):
-        return value
-    if value.startswith('"') and value.endswith('"'):
+    if (value.startswith("'") and value.endswith("'")) or (
+        value.startswith('"') and value.endswith('"')
+    ):
         return value
     return f"'{value}'"
+
+
+def _strip_quotes(value: str) -> str:
+    """Remove a matching pair of quotes from the ends of ``value``."""
+    value = value.strip()
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in {'"', "'"}:
+        return value[1:-1]
+    return value
 
 
 def _format_keys(raw_keys: str, key_types: Dict[str, str]) -> str:
@@ -29,14 +37,14 @@ def _format_keys(raw_keys: str, key_types: Dict[str, str]) -> str:
         for pair in raw_keys.split(","):
             name, val = pair.split("=", 1)
             name = name.strip()
-            val = val.strip()
+            val = _strip_quotes(val)
             edm = key_types.get(name, "")
-            parts.append(f"{name}={_quote_value(val.strip("'\""), edm)}")
+            parts.append(f"{name}={_quote_value(val, edm)}")
         return ",".join(parts)
     # single key
     if key_types:
         name, edm = next(iter(key_types.items()))
-        return _quote_value(raw_keys.strip("'\""), edm)
+        return _quote_value(_strip_quotes(raw_keys), edm)
     return raw_keys
 
 
