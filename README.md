@@ -33,7 +33,8 @@ service.
 
 4. Run the server:
    ```bash
-   uvicorn app.main:app
+   python path/to/openapi-odata
    ```
+   The package can still be started manually with Uvicorn using `uvicorn app.main:app` if preferred.
 
 The `/openapi.json` endpoint exposes the combined OpenAPI specification while `/tools/{service}` returns tool metadata for a single service.
