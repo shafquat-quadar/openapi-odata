@@ -4,6 +4,16 @@ import logging
 from typing import Optional
 from jsonrpcserver import method, dispatch, result
 
+CAPABILITIES = {
+    "services": {},
+    "metadata": {},
+    "get_entity": {},
+    "list_entities": {},
+    "invoke": {},
+    "call_function": {},
+}
+
+from openapi_server import app
 from openapi_server.routes.odata import (
     services as _services,
     metadata as _metadata,
@@ -17,7 +27,13 @@ from openapi_server.routes.odata import (
 @method
 def initialize() -> result.Result:
     """Handle the JSON-RPC initialize request."""
-    return result.Success({"capabilities": {}})
+    return result.Success(
+        {
+            "protocolVersion": "2.0",
+            "serverInfo": {"name": app.title, "version": app.version},
+            "capabilities": CAPABILITIES,
+        }
+    )
 
 
 @method
