@@ -51,6 +51,8 @@ Runs a JSON-RPC 2.0 server that reads requests from `stdin` and writes responses
 python main.py --mode jsonrpc
 ```
 
+Logs of all requests and responses are written to `jsonrpc_server/jsonrpc.log`.
+
 Example request/response:
 
 ```bash
