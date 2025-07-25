@@ -8,6 +8,7 @@ from fastapi.responses import JSONResponse
 from tools.loader import load_metadata, list_services
 from tools.parser import parse_metadata
 from tools.invoker import ODataInvoker
+from config import settings
 from models.dynamic import build_models
 
 
@@ -53,10 +54,10 @@ class ServiceContext:
         xml, base_url = load_metadata(name)
         self.name = name
         self.metadata_xml = xml
-        self.base_url = base_url
+        self.base_url = base_url or settings.base_url
         self.parsed = parse_metadata(xml)
         self.models = build_models(self.parsed)
-        self.invoker = ODataInvoker(base_url)
+        self.invoker = ODataInvoker(self.base_url)
         self.key_types = self._extract_key_types()
 
     def _extract_key_types(self) -> Dict[str, Dict[str, str]]:
