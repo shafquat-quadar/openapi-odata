@@ -5,9 +5,9 @@ from typing import Any, Dict, Optional
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import JSONResponse
 
-from utils.loader import load_metadata, list_services
-from utils.parser import parse_metadata
-from utils.invoker import ODataInvoker
+from tools.loader import load_metadata, list_services
+from tools.parser import parse_metadata
+from tools.invoker import ODataInvoker
 from models.dynamic import build_models
 
 

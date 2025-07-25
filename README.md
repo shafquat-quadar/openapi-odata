@@ -1,55 +1,65 @@
-# openapi-odata
+# MCP OData Bridge
 
-This project implements a small MCP style bridge that exposes OData services via FastAPI. Service definitions can come from a SQLite database or from a directory of metadata XML files. The metadata is parsed at runtime to create Pydantic models, FastAPI routes and a tool registry consumable by LLM agents.
+This project exposes OData services using FastAPI and also provides a JSON-RPC interface for use with LLM agents. Services are discovered from a directory of metadata XML files or from a SQLite database at runtime.
 
-## Usage
+## Requirements
 
-1. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-2. Choose how services are loaded:
-   - **SQLite** (default): the SQLite file used is configured with the `DB_FILE`
-     environment variable (`shared.sqlite` by default). The table
-     `odata_services` must contain `service_name`, `base_url` and
-     `metadata_raw` columns.
-   - **Directory**: set `DIR=./path/to/xmls`. Each `*.xml` file in the directory
-     is treated as a service. Optional `BASE_URL_<SERVICE>` variables can provide
-     per-service backend URLs.
-   You can fetch the XML from a running service using the `fetch_metadata.py`
-   helper.
-
-3. Provide credentials in an `.env` file or environment variables:
-   - `ODATA_USER` and `ODATA_PASS` – credentials used for Basic Auth when the
-     bridge calls the backend service.
-
-   **Note:** the server refuses to start if `ODATA_USER` or `ODATA_PASS` are not
-   defined.
-
-The helper script `fetch_metadata.py` honours the `ODATA_BASE_URL`, `ODATA_USER`
-and `ODATA_PASS` variables when downloading metadata from an existing OData
-service.
-
-4. Run the server:
-   ```bash
-   python path/to/openapi-odata
-   ```
-   The package can still be started manually with Uvicorn using `uvicorn app.main:app` if preferred.
-
-The `/docs` path serves an interactive Swagger UI while `/openapi.json` exposes
-the combined OpenAPI specification. The `/tools/{service}` endpoint returns tool
-metadata for a single service.
-
-## Running in MCP Mode
-
-The bridge can also run in MCP-compatible mode where it communicates over
-`stdin`/`stdout` using JSON-RPC messages.
+Install dependencies:
 
 ```bash
-# MCP Mode
-python mcp_main.py
+pip install -r requirements.txt
 ```
 
-In this mode the process expects JSON-RPC requests on `stdin` and writes
-responses to `stdout`.
+## Configuration
+
+Configuration is loaded from `config.yaml` if present and can be overridden with environment variables.
+
+Example `config.yaml`:
+
+```yaml
+mode: http  # "http" or "jsonrpc"
+# dir: ./metadata
+# db_file: shared.sqlite
+# odata_user: username
+# odata_pass: password
+```
+
+The `DIR` variable points at a directory containing service metadata XML files. Alternatively set `DB_FILE` to use a SQLite database. Credentials for backend requests can be provided via `ODATA_USER` and `ODATA_PASS`.
+
+## Running
+
+Use `main.py` with the `--mode` option or set `MODE` in the environment.
+
+### HTTP Mode
+
+Runs the FastAPI server with OpenAPI documentation.
+
+```bash
+python main.py --mode http
+```
+
+The interactive docs are available at `http://localhost:8000/docs` and the OpenAPI schema at `/openapi.json`.
+
+### JSON-RPC Mode
+
+Runs a JSON-RPC 2.0 server that reads requests from `stdin` and writes responses to `stdout`.
+
+```bash
+python main.py --mode jsonrpc
+```
+
+Example request/response:
+
+```bash
+echo '{"jsonrpc": "2.0", "id": 1, "method": "services"}' | python main.py --mode jsonrpc
+```
+
+## Test Commands
+
+```bash
+# HTTP mode
+python main.py --mode http
+
+# JSON-RPC mode example
+printf '%s\n' '{"jsonrpc": "2.0", "id": 1, "method": "services"}' | python main.py --mode jsonrpc
+```

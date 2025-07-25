@@ -1,9 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
-from routes import router
 from typing import Any, Dict
-
+from .routes import router
 
 def _convert_to_openapi_30(schema: Dict[str, Any]) -> Dict[str, Any]:
     """Convert OpenAPI 3.1 schema pieces to a 3.0 compatible format."""
