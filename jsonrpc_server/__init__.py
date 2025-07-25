@@ -1,6 +1,7 @@
 """Simple JSON-RPC 2.0 server exposing OData endpoints."""
 import sys
 import logging
+from pathlib import Path
 from typing import Optional, Dict, List, Any
 from jsonrpcserver import method, dispatch, result
 from starlette.responses import Response
@@ -320,7 +321,15 @@ def call_tool(name: str, arguments: Optional[Dict[str, Any]] = None) -> result.R
 
 def serve() -> None:
     """Run the JSON-RPC server reading from stdin and writing to stdout."""
-    logging.basicConfig(stream=sys.stderr, level=logging.INFO)
+    log_file = Path(__file__).with_name("jsonrpc.log")
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s %(message)s",
+        handlers=[
+            logging.StreamHandler(sys.stderr),
+            logging.FileHandler(log_file, mode="a"),
+        ],
+    )
     logger = logging.getLogger(__name__)
     for line in sys.stdin:
         line = line.strip()
