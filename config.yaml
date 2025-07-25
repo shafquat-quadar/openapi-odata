@@ -1,0 +1,6 @@
+# Default configuration for MCP OData bridge
+mode: http
+# dir: ./metadata
+# db_file: shared.sqlite
+# odata_user: username
+# odata_pass: password

@@ -1,6 +1,7 @@
 fastapi
 uvicorn
+pydantic
+pyyaml
+jsonrpcserver
 requests
 xmltodict
-python-dotenv
-openapi-spec-validator
