@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .router import router
+# import router from the new modular package
+from routes import router
 from fastapi.openapi.utils import get_openapi
 
 app = FastAPI(title="MCP OData Bridge", version="1.0.0")
