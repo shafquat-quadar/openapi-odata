@@ -160,10 +160,10 @@ def list_tools() -> result.Result:
 
 
 @method(name="tools/call")
-def call_tool(params: Dict[str, Any]) -> result.Result:
+def call_tool(name: str, arguments: Optional[Dict[str, Any]] = None) -> result.Result:
     """Execute one of the available tools using MCP format."""
-    name = params.get("name")
-    arguments = params.get("arguments", {}) or {}
+    if arguments is None:
+        arguments = {}
 
     if not name:
         return result.Error(code=400, message="Tool name required")
