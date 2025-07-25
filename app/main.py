@@ -29,7 +29,7 @@ def _convert_to_openapi_30(schema: Dict[str, Any]) -> Dict[str, Any]:
 app = FastAPI(
     title="MCP OData Bridge",
     version="1.0.0",
-    openapi_url=None,  # disable default route so we can override
+    openapi_url="/openapi.json",  # expose schema for docs
 )
 app.add_middleware(
     CORSMiddleware,
@@ -40,7 +40,10 @@ app.add_middleware(
 app.include_router(router)
 
 
-@app.get("/openapi.json", include_in_schema=False)
-def openapi_schema():
+def custom_openapi() -> Dict[str, Any]:
+    """Return an OpenAPI 3.0 compatible schema."""
     schema = get_openapi(title=app.title, version=app.version, routes=app.routes)
     return _convert_to_openapi_30(schema)
+
+
+app.openapi = custom_openapi
