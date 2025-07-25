@@ -37,4 +37,6 @@ service.
    ```
    The package can still be started manually with Uvicorn using `uvicorn app.main:app` if preferred.
 
-The `/openapi.json` endpoint exposes the combined OpenAPI specification while `/tools/{service}` returns tool metadata for a single service.
+The `/docs` path serves an interactive Swagger UI while `/openapi.json` exposes
+the combined OpenAPI specification. The `/tools/{service}` endpoint returns tool
+metadata for a single service.
