@@ -3,6 +3,8 @@ import sys
 import logging
 from typing import Optional, Dict, List, Any
 from jsonrpcserver import method, dispatch, result
+from starlette.responses import Response
+import json
 
 # Capabilities advertised during the JSON-RPC ``initialize`` handshake.
 # ``tools`` is currently the only capability required by the Claude agent.
@@ -17,6 +19,17 @@ from openapi_server.routes.odata import (
     invoke as _invoke,
     call_function as _call_function,
 )
+
+
+def _as_raw(value: Any) -> Any:
+    """Return the content from a FastAPI Response or passthrough."""
+    if isinstance(value, Response):
+        text = value.body.decode()
+        try:
+            return json.loads(text)
+        except Exception:
+            return text
+    return value
 
 # Descriptions and parameter schemas for supported JSON-RPC tools
 TOOLS: List[Dict[str, Dict]] = [
@@ -136,7 +149,7 @@ def initialize(
 def services() -> result.Result:
     print("DEBUG: services called", file=sys.stderr)
     try:
-        res = _services()
+        res = _as_raw(_services())
         print(f"DEBUG: Got result: {res}", file=sys.stderr)
         return result.Success(res)
     except Exception as e:
@@ -148,7 +161,7 @@ def services() -> result.Result:
 def metadata(service: str) -> result.Result:
     print(f"DEBUG: metadata called with service={service}", file=sys.stderr)
     try:
-        res = _metadata(service)
+        res = _as_raw(_metadata(service))
         print(f"DEBUG: Got result: {res}", file=sys.stderr)
         return result.Success(res)
     except Exception as e:
@@ -163,7 +176,7 @@ def get_entity(service: str, entity: str, keys: str, expand: Optional[str] = Non
         file=sys.stderr,
     )
     try:
-        res = _get_entity(service, entity, keys, expand)
+        res = _as_raw(_get_entity(service, entity, keys, expand))
         print(f"DEBUG: Got result: {res}", file=sys.stderr)
         return result.Success(res)
     except Exception as e:
@@ -192,6 +205,7 @@ def list_entities(
         res = _list_entities(
             service, entity, filter_, top, skip, orderby, expand, count
         )
+        res = _as_raw(res)
         print(f"DEBUG: Got result: {res}", file=sys.stderr)
         return result.Success(res)
     except Exception as e:
@@ -209,6 +223,7 @@ def invoke(
     )
     try:
         res = _invoke({"service": service, "path": path, "method": method, "json": json})
+        res = _as_raw(res)
         print(f"DEBUG: Got result: {res}", file=sys.stderr)
         return result.Success(res)
     except Exception as e:
@@ -224,6 +239,7 @@ def call_function(service: str, name: str, body: dict) -> result.Result:
     )
     try:
         res = _call_function(service, name, body)
+        res = _as_raw(res)
         print(f"DEBUG: Got result: {res}", file=sys.stderr)
         return result.Success(res)
     except Exception as e:
@@ -256,29 +272,35 @@ def call_tool(name: str, arguments: Optional[Dict[str, Any]] = None) -> result.R
         return result.Error(code=400, message="arguments must be an object")
 
     tool_map = {
-        "services": lambda: _services(),
-        "metadata": lambda: _metadata(**arguments),
-        "get_entity": lambda: _get_entity(
-            arguments.get("service"),
-            arguments.get("entity"),
-            arguments.get("keys"),
-            arguments.get("expand"),
+        "services": lambda: _as_raw(_services()),
+        "metadata": lambda: _as_raw(_metadata(**arguments)),
+        "get_entity": lambda: _as_raw(
+            _get_entity(
+                arguments.get("service"),
+                arguments.get("entity"),
+                arguments.get("keys"),
+                arguments.get("expand"),
+            )
         ),
-        "list_entities": lambda: _list_entities(
-            arguments.get("service"),
-            arguments.get("entity"),
-            arguments.get("filter_"),
-            arguments.get("top"),
-            arguments.get("skip"),
-            arguments.get("orderby"),
-            arguments.get("expand"),
-            arguments.get("count"),
+        "list_entities": lambda: _as_raw(
+            _list_entities(
+                arguments.get("service"),
+                arguments.get("entity"),
+                arguments.get("filter_"),
+                arguments.get("top"),
+                arguments.get("skip"),
+                arguments.get("orderby"),
+                arguments.get("expand"),
+                arguments.get("count"),
+            )
         ),
-        "invoke": lambda: _invoke(arguments),
-        "call_function": lambda: _call_function(
-            arguments.get("service"),
-            arguments.get("name"),
-            arguments.get("body", {}),
+        "invoke": lambda: _as_raw(_invoke(arguments)),
+        "call_function": lambda: _as_raw(
+            _call_function(
+                arguments.get("service"),
+                arguments.get("name"),
+                arguments.get("body", {}),
+            )
         ),
     }
 
