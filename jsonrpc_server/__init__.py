@@ -207,11 +207,14 @@ def call_tool(name: str, arguments: Optional[Dict[str, Any]] = None) -> result.R
 
 def serve() -> None:
     """Run the JSON-RPC server reading from stdin and writing to stdout."""
-    logging.basicConfig(stream=sys.stderr, level=logging.CRITICAL)
+    logging.basicConfig(stream=sys.stderr, level=logging.INFO)
+    logger = logging.getLogger(__name__)
     for line in sys.stdin:
         line = line.strip()
         if not line:
             continue
+        logger.info("Request: %s", line)
         response = dispatch(line)
         if response:
+            logger.info("Response: %s", response)
             print(response, flush=True)
