@@ -115,28 +115,60 @@ def initialize(
     # standard version supported by this server.
     _ = (protocolVersion, capabilities, clientInfo, _kwargs)
 
-    return result.Success(
-        {
+    print(
+        f"DEBUG: initialize called with protocolVersion={protocolVersion}, capabilities={capabilities}, clientInfo={clientInfo}",
+        file=sys.stderr,
+    )
+    try:
+        res = {
             "protocolVersion": "2024-11-05",
             "serverInfo": {"name": app.title, "version": app.version},
             "capabilities": CAPABILITIES,
         }
-    )
+        print(f"DEBUG: Got result: {res}", file=sys.stderr)
+        return result.Success(res)
+    except Exception as e:
+        print(f"DEBUG: Error occurred: {e}", file=sys.stderr)
+        return result.Error(code=500, message=str(e))
 
 
 @method
 def services() -> result.Result:
-    return result.Success(_services())
+    print("DEBUG: services called", file=sys.stderr)
+    try:
+        res = _services()
+        print(f"DEBUG: Got result: {res}", file=sys.stderr)
+        return result.Success(res)
+    except Exception as e:
+        print(f"DEBUG: Error occurred: {e}", file=sys.stderr)
+        return result.Error(code=500, message=str(e))
 
 
 @method
 def metadata(service: str) -> result.Result:
-    return result.Success(_metadata(service))
+    print(f"DEBUG: metadata called with service={service}", file=sys.stderr)
+    try:
+        res = _metadata(service)
+        print(f"DEBUG: Got result: {res}", file=sys.stderr)
+        return result.Success(res)
+    except Exception as e:
+        print(f"DEBUG: Error occurred: {e}", file=sys.stderr)
+        return result.Error(code=500, message=str(e))
 
 
 @method
 def get_entity(service: str, entity: str, keys: str, expand: Optional[str] = None) -> result.Result:
-    return result.Success(_get_entity(service, entity, keys, expand))
+    print(
+        f"DEBUG: get_entity called with service={service}, entity={entity}, keys={keys}, expand={expand}",
+        file=sys.stderr,
+    )
+    try:
+        res = _get_entity(service, entity, keys, expand)
+        print(f"DEBUG: Got result: {res}", file=sys.stderr)
+        return result.Success(res)
+    except Exception as e:
+        print(f"DEBUG: Error occurred: {e}", file=sys.stderr)
+        return result.Error(code=500, message=str(e))
 
 
 @method
@@ -150,29 +182,66 @@ def list_entities(
     expand: Optional[str] = None,
     count: Optional[bool] = None,
 ) -> result.Result:
-    return result.Success(
-        _list_entities(service, entity, filter_, top, skip, orderby, expand, count)
+    print(
+        "DEBUG: list_entities called with "
+        f"service={service}, entity={entity}, filter_={filter_}, top={top}, "
+        f"skip={skip}, orderby={orderby}, expand={expand}, count={count}",
+        file=sys.stderr,
     )
+    try:
+        res = _list_entities(
+            service, entity, filter_, top, skip, orderby, expand, count
+        )
+        print(f"DEBUG: Got result: {res}", file=sys.stderr)
+        return result.Success(res)
+    except Exception as e:
+        print(f"DEBUG: Error occurred: {e}", file=sys.stderr)
+        return result.Error(code=500, message=str(e))
 
 
 @method
 def invoke(
     service: str, path: str, method: str = "GET", json: Optional[dict] = None
 ) -> result.Result:
-    return result.Success(
-        _invoke({"service": service, "path": path, "method": method, "json": json})
+    print(
+        f"DEBUG: invoke called with service={service}, path={path}, method={method}, json={json}",
+        file=sys.stderr,
     )
+    try:
+        res = _invoke({"service": service, "path": path, "method": method, "json": json})
+        print(f"DEBUG: Got result: {res}", file=sys.stderr)
+        return result.Success(res)
+    except Exception as e:
+        print(f"DEBUG: Error occurred: {e}", file=sys.stderr)
+        return result.Error(code=500, message=str(e))
 
 
 @method
 def call_function(service: str, name: str, body: dict) -> result.Result:
-    return result.Success(_call_function(service, name, body))
+    print(
+        f"DEBUG: call_function called with service={service}, name={name}, body={body}",
+        file=sys.stderr,
+    )
+    try:
+        res = _call_function(service, name, body)
+        print(f"DEBUG: Got result: {res}", file=sys.stderr)
+        return result.Success(res)
+    except Exception as e:
+        print(f"DEBUG: Error occurred: {e}", file=sys.stderr)
+        return result.Error(code=500, message=str(e))
 
 
 @method(name="tools/list")
 def list_tools() -> result.Result:
     """Return metadata about available JSON-RPC tools."""
-    return result.Success({"tools": TOOLS})
+    print("DEBUG: list_tools called", file=sys.stderr)
+    try:
+        res = {"tools": TOOLS}
+        print(f"DEBUG: Got result: {res}", file=sys.stderr)
+        return result.Success(res)
+    except Exception as e:
+        print(f"DEBUG: Error occurred: {e}", file=sys.stderr)
+        return result.Error(code=500, message=str(e))
 
 
 @method(name="tools/call")
@@ -217,8 +286,14 @@ def call_tool(name: str, arguments: Optional[Dict[str, Any]] = None) -> result.R
     if not func:
         return result.Error(code=404, message="Unknown tool")
 
-    res = func()
-    return result.Success({"content": res, "contentType": "application/json"})
+    print(f"DEBUG: About to call {name} with {arguments}", file=sys.stderr)
+    try:
+        res = func()
+        print(f"DEBUG: Got result: {res}", file=sys.stderr)
+        return result.Success({"content": res, "contentType": "application/json"})
+    except Exception as e:
+        print(f"DEBUG: Error occurred: {e}", file=sys.stderr)
+        return result.Error(code=500, message=str(e))
 
 
 def serve() -> None:
