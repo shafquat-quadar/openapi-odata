@@ -18,12 +18,12 @@ def main():
     )
     parser.add_argument(
         "--username",
-        default=os.getenv("ODATA_USERNAME", "user"),
+        default=os.getenv("ODATA_USER", "user"),
         help="Basic auth username",
     )
     parser.add_argument(
         "--password",
-        default=os.getenv("ODATA_PASSWORD", "password"),
+        default=os.getenv("ODATA_PASS", "password"),
         help="Basic auth password",
     )
     args = parser.parse_args()

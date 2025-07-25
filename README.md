@@ -10,17 +10,26 @@ This project implements a small MCP style bridge that exposes OData services via
    ```
 
 2. Choose how services are loaded:
-   - **SQLite** (default): Insert your service configuration into `shared.sqlite`. The table `services` must contain `name`, `description`, `active`, `metadata_xml` and `base_url` columns.
-   - **Directory**: Set `METADATA_SOURCE=dir` and `METADATA_DIR=./path/to/xmls`. Each `*.xml` file is treated as a service named after the filename. Optional `BASE_URL_SERVICE` environment variables can provide per-service backend URLs.
-   You can fetch the XML from a running service using the `fetch_metadata.py` helper.
+   - **SQLite** (default): the SQLite file used is configured with the `DB_FILE`
+     environment variable (`shared.sqlite` by default). The table
+     `odata_services` must contain `service_name`, `base_url` and
+     `metadata_raw` columns.
+   - **Directory**: set `DIR=./path/to/xmls`. Each `*.xml` file in the directory
+     is treated as a service. Optional `BASE_URL_<SERVICE>` variables can provide
+     per-service backend URLs.
+   You can fetch the XML from a running service using the `fetch_metadata.py`
+   helper.
 
 3. Provide credentials in an `.env` file or environment variables:
-   - `USERNAME` and `PASSWORD` – Basic Auth credentials for the backend. The
-     invoker now uses `HTTPBasicAuth` so these credentials are included on the
-     first request.
-   - `BASE_URL` (optional) – default backend base URL
-   
-   **Note:** The server refuses to start if `USERNAME`/`PASSWORD` (or `ODATA_USERNAME`/`ODATA_PASSWORD`) are not defined. Ensure these values are set either in the environment or in an `.env` file.
+   - `ODATA_USER` and `ODATA_PASS` – credentials used for Basic Auth when the
+     bridge calls the backend service.
+
+   **Note:** the server refuses to start if `ODATA_USER` or `ODATA_PASS` are not
+   defined.
+
+The helper script `fetch_metadata.py` honours the `ODATA_BASE_URL`, `ODATA_USER`
+and `ODATA_PASS` variables when downloading metadata from an existing OData
+service.
 
 4. Run the server:
    ```bash
