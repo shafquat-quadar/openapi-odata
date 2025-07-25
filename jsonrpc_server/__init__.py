@@ -1,7 +1,8 @@
 """Simple JSON-RPC 2.0 server exposing OData endpoints."""
 import sys
+import logging
 from typing import Optional
-from jsonrpcserver import method, dispatch
+from jsonrpcserver import method, dispatch, result
 
 from openapi_server.routes.odata import (
     services as _services,
@@ -14,18 +15,24 @@ from openapi_server.routes.odata import (
 
 
 @method
-def services() -> list:
-    return _services()
+def initialize() -> result.Result:
+    """Handle the JSON-RPC initialize request."""
+    return result.Success({"capabilities": {}})
 
 
 @method
-def metadata(service: str) -> object:
-    return _metadata(service)
+def services() -> result.Result:
+    return result.Success(_services())
 
 
 @method
-def get_entity(service: str, entity: str, keys: str, expand: Optional[str] = None) -> object:
-    return _get_entity(service, entity, keys, expand)
+def metadata(service: str) -> result.Result:
+    return result.Success(_metadata(service))
+
+
+@method
+def get_entity(service: str, entity: str, keys: str, expand: Optional[str] = None) -> result.Result:
+    return result.Success(_get_entity(service, entity, keys, expand))
 
 
 @method
@@ -38,26 +45,33 @@ def list_entities(
     orderby: Optional[str] = None,
     expand: Optional[str] = None,
     count: Optional[bool] = None,
-) -> object:
-    return _list_entities(service, entity, filter_, top, skip, orderby, expand, count)
+) -> result.Result:
+    return result.Success(
+        _list_entities(service, entity, filter_, top, skip, orderby, expand, count)
+    )
 
 
 @method
-def invoke(service: str, path: str, method: str = "GET", json: Optional[dict] = None) -> object:
-    return _invoke({"service": service, "path": path, "method": method, "json": json})
+def invoke(
+    service: str, path: str, method: str = "GET", json: Optional[dict] = None
+) -> result.Result:
+    return result.Success(
+        _invoke({"service": service, "path": path, "method": method, "json": json})
+    )
 
 
 @method
-def call_function(service: str, name: str, body: dict) -> object:
-    return _call_function(service, name, body)
+def call_function(service: str, name: str, body: dict) -> result.Result:
+    return result.Success(_call_function(service, name, body))
 
 
 def serve() -> None:
     """Run the JSON-RPC server reading from stdin and writing to stdout."""
+    logging.basicConfig(stream=sys.stderr, level=logging.CRITICAL)
     for line in sys.stdin:
         line = line.strip()
         if not line:
             continue
         response = dispatch(line)
-        if response.wanted:
+        if response:
             print(response, flush=True)
