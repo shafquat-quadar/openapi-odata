@@ -17,7 +17,8 @@ Configuration is loaded from `config.yaml` if present and can be overridden with
 Example `config.yaml`:
 
 ```yaml
-mode: http  # "http" or "jsonrpc"
+mode: http  # "http", "jsonrpc", or "both"
+port: 8000  # HTTP server port
 # dir: ./metadata
 # db_file: shared.sqlite
 # odata_user: username
@@ -28,7 +29,9 @@ The `DIR` variable points at a directory containing service metadata XML files. 
 
 ## Running
 
-Use `main.py` with the `--mode` option or set `MODE` in the environment.
+Use `main.py` with the `--mode` option or set `MODE` in the environment. The
+HTTP port can be configured with the `--port` option or `PORT` environment
+variable.
 
 ### HTTP Mode
 
@@ -54,6 +57,14 @@ Example request/response:
 echo '{"jsonrpc": "2.0", "id": 1, "method": "services"}' | python main.py --mode jsonrpc
 ```
 
+### Both Modes
+
+Run the HTTP server and JSON-RPC handler in the same process.
+
+```bash
+python main.py --mode both --port 8000
+```
+
 ## Test Commands
 
 ```bash
@@ -62,4 +73,8 @@ python main.py --mode http
 
 # JSON-RPC mode example
 printf '%s\n' '{"jsonrpc": "2.0", "id": 1, "method": "services"}' | python main.py --mode jsonrpc
+```
+
+# Both modes example
+python main.py --mode both --port 8000
 ```
