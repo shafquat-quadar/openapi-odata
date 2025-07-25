@@ -1,7 +1,7 @@
 """Simple JSON-RPC 2.0 server exposing OData endpoints."""
 import sys
 import logging
-from typing import Optional
+from typing import Optional, Dict, List
 from jsonrpcserver import method, dispatch, result
 
 # Capabilities advertised during the JSON-RPC ``initialize`` handshake.
@@ -17,6 +17,83 @@ from openapi_server.routes.odata import (
     invoke as _invoke,
     call_function as _call_function,
 )
+
+# Descriptions and parameter schemas for supported JSON-RPC tools
+TOOLS: List[Dict[str, Dict]] = [
+    {
+        "name": "services",
+        "description": "List available OData service names",
+        "inputSchema": {"type": "object", "properties": {}, "required": []},
+    },
+    {
+        "name": "metadata",
+        "description": "Get the metadata XML for a given service",
+        "inputSchema": {
+            "type": "object",
+            "properties": {"service": {"type": "string"}},
+            "required": ["service"],
+        },
+    },
+    {
+        "name": "get_entity",
+        "description": "Retrieve a single entity instance",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "service": {"type": "string"},
+                "entity": {"type": "string"},
+                "keys": {"type": "string"},
+                "expand": {"type": "string"},
+            },
+            "required": ["service", "entity", "keys"],
+        },
+    },
+    {
+        "name": "list_entities",
+        "description": "List entities within a set",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "service": {"type": "string"},
+                "entity": {"type": "string"},
+                "filter_": {"type": "string"},
+                "top": {"type": "integer"},
+                "skip": {"type": "integer"},
+                "orderby": {"type": "string"},
+                "expand": {"type": "string"},
+                "count": {"type": "boolean"},
+            },
+            "required": ["service", "entity"],
+        },
+    },
+    {
+        "name": "invoke",
+        "description": "Perform an arbitrary backend OData request",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "service": {"type": "string"},
+                "path": {"type": "string"},
+                "method": {"type": "string"},
+                "json": {"type": "object"},
+            },
+            "required": ["service", "path"],
+        },
+    },
+    {
+        "name": "call_function",
+        "description": "Invoke an OData function with a JSON body",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "service": {"type": "string"},
+                "name": {"type": "string"},
+                "body": {"type": "object"},
+            },
+            "required": ["service", "name", "body"],
+        },
+    },
+]
 
 
 @method
@@ -74,6 +151,12 @@ def invoke(
 @method
 def call_function(service: str, name: str, body: dict) -> result.Result:
     return result.Success(_call_function(service, name, body))
+
+
+@method(name="tools/list")
+def list_tools() -> result.Result:
+    """Return metadata about available JSON-RPC tools."""
+    return result.Success({"tools": TOOLS})
 
 
 def serve() -> None:
