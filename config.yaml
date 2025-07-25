@@ -1,4 +1,5 @@
 # Default configuration for MCP OData bridge
+# All settings are read from this file; environment variables are ignored.
 mode: http
 # port used for HTTP server
 port: 8000
