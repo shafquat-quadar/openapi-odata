@@ -4,9 +4,15 @@ from __future__ import annotations
 
 import os
 import sqlite3
+import sys
+import logging
 from typing import List, Tuple
 
 from config import settings
+
+logger = logging.getLogger(__name__)
+print(f"DEBUG: settings.dir = {settings.dir}", file=sys.stderr)
+logger.info("settings.dir = %s", settings.dir)
 
 
 def _load_from_file(service_name: str) -> Tuple[str, str]:
@@ -35,12 +41,16 @@ def _load_from_db(service_name: str) -> Tuple[str, str]:
 
 
 def load_metadata(service_name: str) -> Tuple[str, str]:
+    logger.info("load_metadata called; settings.dir=%s", settings.dir)
+    print(f"DEBUG: load_metadata using settings.dir={settings.dir}", file=sys.stderr)
     if settings.dir:
         return _load_from_file(service_name)
     return _load_from_db(service_name)
 
 
 def list_services() -> List[str]:
+    logger.info("list_services called; settings.dir=%s", settings.dir)
+    print(f"DEBUG: list_services using settings.dir={settings.dir}", file=sys.stderr)
     if settings.dir:
         if not os.path.isdir(settings.dir):
             return []
