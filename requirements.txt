@@ -5,3 +5,4 @@ pyyaml
 jsonrpcserver
 requests
 xmltodict
+python-dotenv

@@ -80,3 +80,17 @@ printf '%s\n' '{"jsonrpc": "2.0", "id": 1, "method": "services"}' | python main.
 # Both modes example
 python main.py --mode both --port 8000
 ```
+
+## CopilotStudio Client Environment
+
+The optional `CopilotStudioClient` reads configuration values from a `.env` file.
+Create a file named `.env` in the project root and provide the following variables:
+
+```
+environmentId="<YOUR_ENVIRONMENT_ID>"
+agentIdentifier="<YOUR_AGENT_IDENTIFIER>"
+tenantId="<YOUR_TENANT_ID>"
+appClientId="<YOUR_APP_CLIENT_ID>"
+```
+
+These values are used when initializing `CopilotStudioClient`.
