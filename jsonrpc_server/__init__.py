@@ -313,7 +313,9 @@ def call_tool(name: str, arguments: Optional[Dict[str, Any]] = None) -> result.R
     try:
         res = func()
         print(f"DEBUG: Got result: {res}", file=sys.stderr)
-        return result.Success({"content": res, "contentType": "application/json"})
+        return result.Success(
+            {"content": [{"type": "text", "text": str(res)}]}
+        )
     except Exception as e:
         print(f"DEBUG: Error occurred: {e}", file=sys.stderr)
         return result.Error(code=500, message=str(e))
